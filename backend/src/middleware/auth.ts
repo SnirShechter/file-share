@@ -14,7 +14,7 @@ function getJWKS() {
 export async function verifyJwt(token: string): Promise<JWTPayload> {
   const { payload } = await jwtVerify(token, getJWKS(), {
     issuer: process.env.OIDC_ISSUER,
-    audience: process.env.OIDC_CLIENT_ID,
+    // Don't check audience — Authentik access tokens may not include client_id as aud
   });
   return payload;
 }
