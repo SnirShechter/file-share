@@ -26,10 +26,10 @@ export function useOidcCallback() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ sessionId }),
             });
+            localStorage.removeItem('sessionId');
           } catch {
-            // Migration failure is non-critical
+            // Migration failure is non-critical — keep sessionId for retry
           }
-          localStorage.removeItem('sessionId');
         }
 
         navigate('/', { replace: true });

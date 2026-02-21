@@ -14,30 +14,78 @@ function getJWKS() {
 export async function verifyJwt(token: string): Promise<JWTPayload> {
   const { payload } = await jwtVerify(token, getJWKS(), {
     issuer: process.env.OIDC_ISSUER,
-    // Don't check audience — Authentik access tokens may not include client_id as aud
   });
   return payload;
 }
 
+// --- Userinfo fallback for opaque access tokens ---
+
+const userinfoCache = new Map<string, { sub: string; expiresAt: number }>();
+const USERINFO_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function verifyTokenViaUserinfo(token: string): Promise<string> {
+  const cached = userinfoCache.get(token);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.sub;
+  }
+
+  const userinfoUrl =
+    process.env.OIDC_USERINFO_URI || `${process.env.OIDC_ISSUER}userinfo/`;
+
+  const response = await fetch(userinfoUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Userinfo request failed: ${response.status}`);
+  }
+
+  const data = (await response.json()) as Record<string, unknown>;
+  if (!data.sub || typeof data.sub !== 'string') {
+    throw new Error('No sub claim in userinfo response');
+  }
+
+  userinfoCache.set(token, {
+    sub: data.sub,
+    expiresAt: Date.now() + USERINFO_CACHE_TTL,
+  });
+  return data.sub;
+}
+
 /**
- * Optional auth middleware - sets userId if valid JWT present, but doesn't reject requests.
+ * Resolve user ID from a Bearer token.
+ * Tries JWT verification first; if the token is opaque, falls back to the userinfo endpoint.
+ */
+async function resolveUserId(token: string): Promise<string> {
+  try {
+    const payload = await verifyJwt(token);
+    return payload.sub as string;
+  } catch {
+    // JWT verification failed — token may be opaque, try userinfo endpoint
+  }
+
+  return await verifyTokenViaUserinfo(token);
+}
+
+/**
+ * Optional auth middleware - sets userId if valid token present, but doesn't reject requests.
  */
 export async function optionalAuth(c: Context<AppEnv>, next: Next) {
   const authHeader = c.req.header('Authorization');
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
     try {
-      const payload = await verifyJwt(token);
-      c.set('userId', payload.sub as string);
-    } catch {
-      // Invalid token — treat as anonymous
+      const userId = await resolveUserId(token);
+      c.set('userId', userId);
+    } catch (err) {
+      console.error('optionalAuth: token verification failed:', err);
     }
   }
   await next();
 }
 
 /**
- * Required auth middleware - returns 401 if no valid JWT.
+ * Required auth middleware - returns 401 if no valid token.
  */
 export async function requireAuth(c: Context<AppEnv>, next: Next) {
   const authHeader = c.req.header('Authorization');
@@ -47,9 +95,10 @@ export async function requireAuth(c: Context<AppEnv>, next: Next) {
 
   const token = authHeader.slice(7);
   try {
-    const payload = await verifyJwt(token);
-    c.set('userId', payload.sub as string);
-  } catch {
+    const userId = await resolveUserId(token);
+    c.set('userId', userId);
+  } catch (err) {
+    console.error('requireAuth: token verification failed:', err);
     return c.json({ error: 'Invalid or expired token' }, 401);
   }
 
