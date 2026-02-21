@@ -3,7 +3,6 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { cors } from 'hono/cors';
 import cron from 'node-cron';
-import { join } from 'node:path';
 
 import { runMigrations } from './db/migrate.js';
 import { cleanupExpiredFiles } from './services/cleanup.js';
