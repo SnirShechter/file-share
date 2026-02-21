@@ -18,7 +18,7 @@ export function useWebSocket(
   sessionId: string | null
 ) {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectDelay = useRef(1000);
   const queryClient = useQueryClient();
 

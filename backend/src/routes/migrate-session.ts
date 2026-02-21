@@ -3,8 +3,9 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db/connection.js';
 import { files } from '../db/schema.js';
 import { requireAuth } from '../middleware/auth.js';
+import type { AppEnv } from '../types.js';
 
-const migrateSession = new Hono();
+const migrateSession = new Hono<AppEnv>();
 
 migrateSession.post('/migrate-session', requireAuth, async (c) => {
   const userId = c.get('userId') as string;

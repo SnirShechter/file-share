@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
-import { eq, desc, or } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db } from '../db/connection.js';
 import { files, downloads } from '../db/schema.js';
 import { optionalAuth } from '../middleware/auth.js';
+import type { AppEnv } from '../types.js';
 
-const stats = new Hono();
+const stats = new Hono<AppEnv>();
 
 stats.get('/files/:id/stats', optionalAuth, async (c) => {
   const fileId = c.req.param('id');
