@@ -1,0 +1,32 @@
+{
+  "name": "file-share-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "hono": "^4",
+    "@hono/node-server": "^1",
+    "drizzle-orm": "^0.34",
+    "postgres": "^3",
+    "jose": "^5",
+    "node-cron": "^3",
+    "mime-types": "^2",
+    "ws": "^8"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "drizzle-kit": "^0.25",
+    "@types/node": "^20",
+    "@types/node-cron": "^3",
+    "@types/mime-types": "^2",
+    "@types/ws": "^8",
+    "tsx": "^4"
+  }
+}

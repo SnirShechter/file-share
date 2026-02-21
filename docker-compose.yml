@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://fileshare:${DB_PASSWORD}@db:5432/fileshare
+      - STORAGE_ROOT=/data/uploads
+      - MAX_FILE_SIZE=104857600
+      - FILE_EXPIRY_DAYS=7
+      - OIDC_ISSUER=https://auth.snir.sh/application/o/file-share/
+      - OIDC_JWKS_URI=https://auth.snir.sh/application/o/file-share/jwks/
+      - OIDC_CLIENT_ID=file-share
+      - PORT=3000
+    volumes:
+      - upload-data:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fileshare.rule=Host(`share.snir.sh`)"
+      - "traefik.http.routers.fileshare.entrypoints=websecure"
+      - "traefik.http.routers.fileshare.tls.certresolver=letsencrypt"
+      - "traefik.http.services.fileshare.loadbalancer.server.port=3000"
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=fileshare
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=fileshare
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fileshare"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  upload-data:
+  db-data:
