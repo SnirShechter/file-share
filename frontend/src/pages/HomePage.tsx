@@ -46,7 +46,7 @@ export default function HomePage() {
     <div className="max-w-3xl mx-auto space-y-8">
       {/* Upload Section */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">העלאת קובץ</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">העלאת קובץ</h2>
         <UploadZone
           token={effectiveToken}
           sessionId={effectiveSessionId}
@@ -64,7 +64,7 @@ export default function HomePage() {
 
       {/* Download Section */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">הורדת קובץ</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">הורדת קובץ</h2>
         <DownloadForm />
       </section>
 
@@ -73,7 +73,7 @@ export default function HomePage() {
 
       {/* File List Section */}
       <section>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">הקבצים שלי</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">הקבצים שלי</h2>
         <FileList
           files={files || []}
           token={effectiveToken}
