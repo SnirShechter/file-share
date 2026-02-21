@@ -34,3 +34,7 @@ body {
   unicode-bidi: isolate;
   text-align: center;
 }
+
+.digit-input input[type="text"] {
+  text-align: center;
+}

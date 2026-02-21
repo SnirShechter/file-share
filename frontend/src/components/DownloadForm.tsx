@@ -110,7 +110,7 @@ export default function DownloadForm() {
     <div className="bg-white rounded-xl border border-border p-6">
       <div className="flex flex-col items-center gap-4">
         {/* Digit inputs */}
-        <div className="digit-input flex gap-2" dir="ltr">
+        <div className="digit-input flex justify-center gap-2" dir="ltr">
           {digits.map((digit, i) => (
             <input
               key={i}
